@@ -8,8 +8,8 @@ let active = null;
 let counter = 0;
 
 const $ = (id) => document.getElementById(id);
-const startView = $("start"), chrome = $("chrome");
-const startSearch = $("start-search"), urlbar = $("urlbar"), tabsEl = $("tabs");
+const chrome = $("chrome");
+const urlbar = $("urlbar"), tabsEl = $("tabs");
 
 function hostOf(url) {
   if (!url) return "Nueva pestaña";
@@ -17,9 +17,6 @@ function hostOf(url) {
 }
 
 function render() {
-  const has = tabs.length > 0;
-  startView.classList.toggle("visible", !has);
-  chrome.classList.toggle("hidden", !has);
   tabsEl.innerHTML = "";
   for (const t of tabs) {
     const b = document.createElement("button");
@@ -58,18 +55,21 @@ function syncChrome() {
 // Al redimensionar la ventana, recolocar tabs (el fixed no sigue solo).
 window.addEventListener("resize", () => syncChrome());
 
-// Primera búsqueda (estado inicial): navega directo.
-async function openFirst(input) {
+// Nuevas tabs (después de la primera): vacías, con su propia search.
+async function newEmptyTab() {
   const label = `tab-${++counter}`;
+  showStatus("Abriendo pestaña...");
   try {
-    await invoke("tab_new", { label, url: input });
+    await invoke("tab_new_empty", { label });
   } catch (e) {
-    console.error("tab_new:", e);
+    console.error("tab_new_empty:", e);
     showStatus("Error al abrir: " + e);
     return;
   }
-  tabs.push({ label, url: input });
+  hideStatus();
+  tabs.push({ label, url: null });
   await activateTab(label);
+  urlbar.focus();
 }
 
 let statusTimer = null;
@@ -80,13 +80,9 @@ function showStatus(msg) {
   clearTimeout(statusTimer);
   statusTimer = setTimeout(() => el.classList.add("hidden"), 4000);
 }
-
-// Nuevas tabs (después de la primera): vacías, con su propia search.
-async function newEmptyTab() {
-  const label = `tab-${++counter}`;
-  await invoke("tab_new_empty", { label });
-  tabs.push({ label, url: null });
-  await activateTab(label);
+function hideStatus() {
+  clearTimeout(statusTimer);
+  $("status").classList.add("hidden");
 }
 
 async function activateTab(label) {
@@ -104,19 +100,21 @@ async function closeTab(label) {
   if (active === label) {
     active = tabs.length ? tabs[tabs.length - 1].label : null;
     if (active) await invoke("tab_show", { label: active }).catch(() => {});
-    else startSearch.focus();
+    else newEmptyTab();
   }
   render();
 }
 
-startSearch.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && startSearch.value.trim()) openFirst(startSearch.value.trim());
-});
-
 urlbar.addEventListener("keydown", (e) => {
   if (e.key !== "Enter") return;
   const v = urlbar.value.trim();
-  if (!v || !active) return;
+  if (!v) return;
+  if (!active) {
+    newEmptyTab().then(() => {
+      if (active) invoke("tab_navigate", { label: active, url: v }).catch((e) => console.error("navigate:", e));
+    });
+    return;
+  }
   invoke("tab_navigate", { label: active, url: v }).then(() => {
     const t = tabs.find((t) => t.label === active);
     if (t) { t.url = v; render(); }
@@ -135,7 +133,7 @@ $("btn-reload").onclick = () => {
 };
 
 document.addEventListener("keydown", (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "t") { e.preventDefault(); if (tabs.length) newEmptyTab(); else startSearch.focus(); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "t") { e.preventDefault(); newEmptyTab(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "w") { e.preventDefault(); if (active) closeTab(active); }
 });
 
@@ -159,7 +157,8 @@ setInterval(async () => {
   } catch {}
 }, 1000);
 
-startSearch.focus();
+// Al arrancar: primera tab vacía automática (navegador normal).
+newEmptyTab();
 render();
 
 // Overlay de diagnóstico (YANG_DEBUG=1): pinta la UI de magenta para ver
@@ -170,10 +169,8 @@ function refreshDebug() {
     ipcFails = 0;
     if (!info.debug) return;
     document.body.style.background = "magenta";
-    const cs = getComputedStyle(startView);
     const cr = chrome.getBoundingClientRect();
     const extra = {
-      startDisplay: cs.display,
       chromeTop: cr.top,
       chromeH_dom: cr.height,
       scrollY: window.scrollY,

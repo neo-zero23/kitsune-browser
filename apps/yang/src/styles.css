@@ -13,19 +13,6 @@
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; }
 .hidden { display: none !important; }
 
-/* ---- Estado inicial: SOLO búsqueda centrada ---- */
-#start {
-  height: 100%; display: flex; align-items: center; justify-content: center;
-}
-#start:not(.visible) { display: none; }
-#start-search {
-  width: min(560px, 80vw); padding: 14px 20px; font-size: 17px;
-  border-radius: 999px; border: 1px solid var(--border);
-  background: var(--bar); color: var(--fg); outline: none;
-  box-shadow: 0 8px 32px rgba(0,0,0,.18);
-}
-#start-search:focus { border-color: var(--accent); }
-
 /* ---- Chrome ---- */
 #chrome { height: calc(var(--tabstrip-h) + var(--toolbar-h)); }
 #tabstrip {

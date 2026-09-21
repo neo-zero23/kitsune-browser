@@ -303,7 +303,9 @@ fn create_tab_view(
             .map_err(|e| e.to_string());
         let _ = tx.send(res);
     });
-    let view = match rx.recv_timeout(std::time::Duration::from_secs(20)) {
+    // WebView2 en Windows puede tardar mucho en crear el primer webview;
+    // 60s para máquinas lentas (el invoke es async, la UI no se congela).
+    let view = match rx.recv_timeout(std::time::Duration::from_secs(60)) {
         Ok(Ok(v)) => {
             log_line(&format!("new {label}: child ok"));
             v

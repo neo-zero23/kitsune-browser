@@ -7,13 +7,8 @@
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <!-- Estado inicial: SOLO la barra de búsqueda, nada más -->
-  <div id="start" class="visible">
-    <input id="start-search" type="text" placeholder="Buscar en la web..." autocomplete="off" spellcheck="false" />
-  </div>
-
-  <!-- Chrome: tabstrip + toolbar (solo visible con tabs) -->
-  <div id="chrome" class="hidden">
+  <!-- Chrome siempre visible: tabstrip + toolbar -->
+  <div id="chrome">
     <div id="tabstrip">
       <div id="tabs"></div>
       <button id="new-tab" title="Nueva pestaña (Ctrl+T)">+</button>
@@ -22,7 +17,7 @@
       <button id="btn-back" title="Atrás">←</button>
       <button id="btn-fwd" title="Adelante">→</button>
       <button id="btn-reload" title="Recargar">⟳</button>
-      <input id="urlbar" type="text" autocomplete="off" spellcheck="false" />
+      <input id="urlbar" type="text" placeholder="Buscar o escribir dirección" autocomplete="off" spellcheck="false" />
     </div>
   </div>
 

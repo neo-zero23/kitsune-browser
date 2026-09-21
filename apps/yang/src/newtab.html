@@ -7,36 +7,8 @@
     html, body {
       margin: 0; height: 100%; overflow: hidden;
       background: light-dark(#f4f4f5, #161618);
-      font-family: system-ui, sans-serif;
     }
-    body { display: flex; align-items: center; justify-content: center; }
-    #q {
-      width: min(520px, 78vw); padding: 13px 20px; font-size: 16px;
-      border-radius: 999px; border: 1px solid light-dark(#ddd, #333);
-      background: light-dark(#fff, #1e1e21);
-      color: light-dark(#1a1a1a, #e8e8ea);
-      outline: none; box-shadow: 0 8px 32px rgba(0,0,0,.18);
-    }
-    #q:focus { border-color: #7aa2f7; }
   </style>
 </head>
-<body>
-  <input id="q" type="text" placeholder="Buscar en la web..." autocomplete="off" spellcheck="false" />
-  <script>
-    const { invoke } = window.__TAURI__.core;
-    const { getCurrentWebview } = window.__TAURI__.webview;
-    const q = document.getElementById("q");
-    q.focus();
-    q.addEventListener("keydown", async (e) => {
-      if (e.key !== "Enter" || !q.value.trim()) return;
-      const v = q.value.trim();
-      let url;
-      if (/^https?:\/\//i.test(v)) url = v;
-      else if (!v.includes(" ") && v.includes(".")) url = "https://" + v;
-      else url = "https://duckduckgo.com/?q=" + encodeURIComponent(v).replace(/%20/g, "+");
-      const label = getCurrentWebview().label;
-      await invoke("tab_navigate", { label, url }).catch(() => {});
-    });
-  </script>
-</body>
+<body></body>
 </html>
