@@ -139,7 +139,11 @@ document.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "w") { e.preventDefault(); if (active) closeTab(active); }
 });
 
-// Sync urlbar 1 vez/seg (redirects, links, SPA, y navegación desde newtab.html).
+// Watchdog IPC: si el puente no responde, avisar (WebView2 viejo = IPC muerto).
+setTimeout(() => {
+  if (!window.__TAURI__) showStatus("Puente Tauri ausente — instala con el setup .exe (incluye WebView2)");
+}, 3000);
+let ipcFails = 0;
 setInterval(async () => {
   if (!active || document.activeElement === urlbar) return;
   try {
@@ -163,6 +167,7 @@ render();
 // Overlay de diagnóstico (YANG_DEBUG=1). Se refresca 1 vez/seg para ver bounds reales.
 function refreshDebug() {
   invoke("debug_info").then((info) => {
+    ipcFails = 0;
     if (!info.debug) return;
     document.body.style.background = "magenta";
     const cs = getComputedStyle(startView);
@@ -184,7 +189,9 @@ function refreshDebug() {
       document.body.appendChild(d);
     }
     d.textContent = JSON.stringify({ ...info, ...extra }, null, 1);
-  }).catch(() => {});
+  }).catch(() => {
+    if (++ipcFails === 4) showStatus("Sin respuesta del backend — instala con el setup .exe (incluye WebView2)");
+  });
 }
 refreshDebug();
 setInterval(refreshDebug, 1000);
