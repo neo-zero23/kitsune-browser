@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for main UI",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

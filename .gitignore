@@ -1,0 +1,11 @@
+# Rust
+apps/*/src-tauri/target/
+# Node
+apps/*/node_modules/
+apps/yang/icon-source.png
+# Tauri
+apps/*/src-tauri/gen/
+*.AppImage
+*.deb
+*.msi
+*.dmg

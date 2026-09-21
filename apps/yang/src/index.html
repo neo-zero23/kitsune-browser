@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kitsune Yang</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- Estado inicial: SOLO la barra de búsqueda, nada más -->
+  <div id="start" class="visible">
+    <input id="start-search" type="text" placeholder="Buscar en la web..." autocomplete="off" spellcheck="false" />
+  </div>
+
+  <!-- Chrome: tabstrip + toolbar (solo visible con tabs) -->
+  <div id="chrome" class="hidden">
+    <div id="tabstrip">
+      <div id="tabs"></div>
+      <button id="new-tab" title="Nueva pestaña (Ctrl+T)">+</button>
+    </div>
+    <div id="toolbar">
+      <button id="btn-back" title="Atrás">←</button>
+      <button id="btn-fwd" title="Adelante">→</button>
+      <button id="btn-reload" title="Recargar">⟳</button>
+      <input id="urlbar" type="text" autocomplete="off" spellcheck="false" />
+    </div>
+  </div>
+
+  <script src="./main.js"></script>
+</body>
+</html>

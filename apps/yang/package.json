@@ -1,0 +1,12 @@
+{
+  "name": "kitsune-yang",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kitsune Yang — navegador simple LTS (Tauri)",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}
