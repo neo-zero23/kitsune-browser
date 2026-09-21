@@ -289,18 +289,32 @@ fn create_tab_view(
     }
 
     let builder = tauri::webview::WebviewBuilder::new(&label, url);
-    let view = match window.add_child(
-        builder,
-        tauri::LogicalPosition::new(0.0, y),
-        tauri::LogicalSize::new(w, h),
-    ) {
-        Ok(v) => {
+    // add_child puede colgarse eternamente si el WebView2 está roto/viejo
+    // (el callback de creación nunca llega). Hilo + timeout para no congelar.
+    let (tx, rx) = std::sync::mpsc::channel::<Result<Webview, String>>();
+    let window_c = window.clone();
+    std::thread::spawn(move || {
+        let res = window_c
+            .add_child(
+                builder,
+                tauri::LogicalPosition::new(0.0, y),
+                tauri::LogicalSize::new(w, h),
+            )
+            .map_err(|e| e.to_string());
+        let _ = tx.send(res);
+    });
+    let view = match rx.recv_timeout(std::time::Duration::from_secs(20)) {
+        Ok(Ok(v)) => {
             log_line(&format!("new {label}: child ok"));
             v
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             log_line(&format!("new {label}: add_child ERROR: {e}"));
-            return Err(e.to_string());
+            return Err(e);
+        }
+        Err(_) => {
+            log_line(&format!("new {label}: TIMEOUT creando webview"));
+            return Err("timeout creando la tab (¿WebView2 desactualizado?)".into());
         }
     };
     if let Err(e) = view.set_auto_resize(true) {
