@@ -250,17 +250,38 @@ fn tab_new_empty(
     )
 }
 
+fn log_path() -> std::path::PathBuf {
+    let mut p = std::env::temp_dir();
+    p.push("kitsune-yang-debug.log");
+    p
+}
+
+/// Log dual: consola (dev) + archivo (release sin consola, ej. Windows).
+/// Ver en Windows con Win+R → %TEMP% → kitsune-yang-debug.log
+fn log_line(msg: &str) {
+    eprintln!("[yang] {msg}");
+    if let Ok(mut f) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(log_path())
+    {
+        use std::io::Write;
+        let _ = writeln!(f, "{msg}");
+    }
+}
+
 fn create_tab_view(
     app: &AppHandle,
     tabs: &State<'_, Mutex<Tabs>>,
     label: String,
     url: WebviewUrl,
 ) -> Result<(), String> {
+    log_line(&format!("new {label}: inicio"));
     let window = app.get_window("main").ok_or("sin ventana main")?;
     let chrome_h = tabs.lock().unwrap().chrome_h;
     let y = (chrome_h + y_offset()).max(0.0);
     let (w, h) = content_rect(&window, chrome_h)?;
-    eprintln!("[yang] tab {label}: pos=(0,{y}) size=({w}x{h})");
+    log_line(&format!("new {label}: pos=(0,{y}) size=({w}x{h})"));
 
     // Cierra la anterior con el mismo label si existiera.
     if let Some(old) = tabs.lock().unwrap().views.remove(&label) {
@@ -268,17 +289,27 @@ fn create_tab_view(
     }
 
     let builder = tauri::webview::WebviewBuilder::new(&label, url);
-    let view = window
-        .add_child(
-            builder,
-            tauri::LogicalPosition::new(0.0, y),
-            tauri::LogicalSize::new(w, h),
-        )
-        .map_err(|e| e.to_string())?;
-    view.set_auto_resize(true).map_err(|e| e.to_string())?;
+    let view = match window.add_child(
+        builder,
+        tauri::LogicalPosition::new(0.0, y),
+        tauri::LogicalSize::new(w, h),
+    ) {
+        Ok(v) => {
+            log_line(&format!("new {label}: child ok"));
+            v
+        }
+        Err(e) => {
+            log_line(&format!("new {label}: add_child ERROR: {e}"));
+            return Err(e.to_string());
+        }
+    };
+    if let Err(e) = view.set_auto_resize(true) {
+        log_line(&format!("new {label}: auto_resize ERROR: {e}"));
+    }
 
-    tabs.lock().unwrap().views.insert(label, view);
+    tabs.lock().unwrap().views.insert(label.clone(), view);
     apply_layout(app, &tabs.lock().unwrap());
+    log_line(&format!("new {label}: fin ok"));
     Ok(())
 }
 
@@ -370,6 +401,7 @@ fn tab_show(
     tabs: State<'_, Mutex<Tabs>>,
     label: String,
 ) -> Result<(), String> {
+    log_line(&format!("show {label}"));
     {
         let tabs = tabs.lock().unwrap();
         if !tabs.views.contains_key(&label) {
@@ -380,13 +412,13 @@ fn tab_show(
                 // best-effort: un webview recién creado puede rechazar show/focus
                 // hasta estar realizado; no abortar por eso.
                 if let Err(e) = v.show() {
-                    eprintln!("[yang] show {l} error: {e}");
+                    log_line(&format!("show {l} error: {e}"));
                 }
                 if let Err(e) = v.set_focus() {
-                    eprintln!("[yang] focus {l} error: {e}");
+                    log_line(&format!("focus {l} error: {e}"));
                 }
             } else if let Err(e) = v.hide() {
-                eprintln!("[yang] hide {l} error: {e}");
+                log_line(&format!("hide {l} error: {e}"));
             }
         }
     }
@@ -446,7 +478,7 @@ fn tab_back(tabs: State<'_, Mutex<Tabs>>, label: String) -> Result<(), String> {
     let tabs = tabs.lock().unwrap();
     let v = tabs.views.get(&label).ok_or("tab inexistente")?;
     let r = v.eval("window.history.back()");
-    eprintln!("[yang] back {label}: {r:?}");
+    log_line(&format!("back {label}: {r:?}"));
     r.map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -456,7 +488,7 @@ fn tab_forward(tabs: State<'_, Mutex<Tabs>>, label: String) -> Result<(), String
     let tabs = tabs.lock().unwrap();
     let v = tabs.views.get(&label).ok_or("tab inexistente")?;
     let r = v.eval("window.history.forward()");
-    eprintln!("[yang] forward {label}: {r:?}");
+    log_line(&format!("forward {label}: {r:?}"));
     r.map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -466,7 +498,7 @@ fn tab_reload(tabs: State<'_, Mutex<Tabs>>, label: String) -> Result<(), String>
     let tabs = tabs.lock().unwrap();
     let v = tabs.views.get(&label).ok_or("tab inexistente")?;
     let r = v.reload();
-    eprintln!("[yang] reload {label}: {r:?}");
+    log_line(&format!("reload {label}: {r:?}"));
     r.map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -479,6 +511,9 @@ fn main() {
             visible: None,
         }))
         .setup(|app| {
+            // Log fresco por arranque.
+            let _ = std::fs::remove_file(log_path());
+            log_line("arranque yang");
             // Debug/test: YANG_AUTOTAB=url abre una tab al arrancar (para screenshots sin teclado).
             if let Ok(url) = std::env::var("YANG_AUTOTAB") {
                 let handle = app.handle().clone();

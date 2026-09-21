@@ -61,9 +61,24 @@ window.addEventListener("resize", () => syncChrome());
 // Primera búsqueda (estado inicial): navega directo.
 async function openFirst(input) {
   const label = `tab-${++counter}`;
-  await invoke("tab_new", { label, url: input });
+  try {
+    await invoke("tab_new", { label, url: input });
+  } catch (e) {
+    console.error("tab_new:", e);
+    showStatus("Error al abrir: " + e);
+    return;
+  }
   tabs.push({ label, url: input });
   await activateTab(label);
+}
+
+let statusTimer = null;
+function showStatus(msg) {
+  const el = $("status");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+  clearTimeout(statusTimer);
+  statusTimer = setTimeout(() => el.classList.add("hidden"), 4000);
 }
 
 // Nuevas tabs (después de la primera): vacías, con su propia search.

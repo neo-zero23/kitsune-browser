@@ -66,3 +66,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 #toolbar button:active { transform: scale(.92); }
 #btn-reload.spinning { animation: yang-spin 1s linear infinite; opacity: 1; }
 @keyframes yang-spin { to { transform: rotate(360deg); } }
+#status {
+  position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%);
+  background: #a33; color: #fff; font-size: 13px; padding: 8px 16px;
+  border-radius: 8px; z-index: 9999; max-width: 80vw;
+}
+#status.hidden { display: none; }
