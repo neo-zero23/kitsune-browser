@@ -36,5 +36,7 @@ jobs:
         if: always()
         with:
           name: kitsune-yang-windows
-          path: apps/yang/src-tauri/target/release/bundle/nsis/*.exe
+          path: |
+            apps/yang/src-tauri/target/release/bundle/nsis/*.exe
+            apps/yang/src-tauri/target/release/kitsune-yang.exe
           if-no-files-found: warn
