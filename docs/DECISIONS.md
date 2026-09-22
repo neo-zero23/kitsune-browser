@@ -63,7 +63,13 @@ Regla: nada que rompa funcionalidad esencial de un navegador.
 - NUNCA por defecto. Medir: baseline normal vs `YANG_POTATO=1` en la misma
   máquina y decidir si el trade-off vale para la edición patata.
 
-## Baseline medido (Windows, Task Manager, con búsqueda DDG abierta)
+## Comparativa final Yang vs Zar (Windows, mismo contenido)
+- IDLE: Zar 130-240 MB / Yang 120-240 MB. Mismo video: Zar 260-600 / Yang 215-700.
+- Parejos (la dispersión en video es normal: bitrate adaptativo + buffering).
+- Conclusión: con paridad de switches no hay diferencia estructural entre
+  Tauri/WebView2 y Electron/Chromium a igualdad de contenido. Caso cerrado.
+
+## Baseline histórico (Windows, primera medición con DDG)
 - Fila "Administrador de WebView2" (215 MB) = **total del grupo**, no un
   proceso (los hijos suman lo mismo: GPU 68 + renderer DDG 66 + browser 43
   + UI 25 + network/storage/crashpad ~12).
