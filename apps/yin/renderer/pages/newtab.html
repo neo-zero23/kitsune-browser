@@ -11,42 +11,105 @@
     body {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 26px;
+      color: light-dark(#1a1a1a, #e8e8ea);
+    }
+    body[data-bg="gradient"] {
       background:
         radial-gradient(1100px 500px at 50% -10%, rgba(122,162,247,.20), transparent 60%),
         radial-gradient(900px 500px at 85% 110%, rgba(180,120,220,.14), transparent 60%),
         radial-gradient(900px 500px at 10% 110%, rgba(90,200,170,.12), transparent 60%),
         light-dark(#eef0f4, #161618);
-      color: light-dark(#1a1a1a, #e8e8ea);
     }
+    body[data-bg="solid"] { background: var(--solid, #161618); }
+    body[data-bg="image"] { background: #000 center/cover no-repeat; }
     #clock { font-size: 64px; font-weight: 200; letter-spacing: 2px; opacity: .9; }
     #date { font-size: 15px; opacity: .55; margin-top: -18px; }
     form { width: min(520px, 78vw); }
-    input {
+    input[type="text"] {
       width: 100%; padding: 13px 20px; font-size: 16px;
       border-radius: 999px; border: 1px solid light-dark(#ddd, #333);
       background: light-dark(rgba(255,255,255,.8), rgba(30,30,33,.85));
       color: inherit; outline: none;
     }
-    input:focus { border-color: #7aa2f7; }
+    input[type="text"]:focus { border-color: #7aa2f7; }
+    .hidden { display: none !important; }
+    #gear {
+      position: fixed; right: 14px; bottom: 12px; border: none; border-radius: 50%;
+      width: 34px; height: 34px; font-size: 16px; cursor: pointer;
+      background: rgba(127,127,127,.25); color: inherit; opacity: .7;
+    }
+    #gear:hover { opacity: 1; }
+    #panel {
+      position: fixed; right: 14px; bottom: 54px; width: 230px;
+      background: light-dark(#fff, #232326); border: 1px solid light-dark(#ddd, #333);
+      border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 9px;
+      font-size: 13px; color: light-dark(#1a1a1a, #e8e8ea);
+    }
+    #panel label { display: flex; align-items: center; gap: 8px; }
+    #panel input[type="color"] { padding: 0; border: none; width: 30px; height: 24px; }
   </style>
 </head>
-<body>
+<body data-bg="gradient">
   <div id="clock">--:--</div>
   <div id="date"></div>
-  <!-- Sin JS de navegación: el form va directo al buscador. -->
-  <form action="https://duckduckgo.com/" method="get">
+  <!-- Sin IPC: el form va directo al buscador. -->
+  <form id="f" action="https://duckduckgo.com/" method="get">
     <input name="q" type="text" placeholder="Buscar en la web..." autocomplete="off" spellcheck="false" autofocus />
   </form>
+  <button id="gear" title="Personalizar">⚙</button>
+  <div id="panel" class="hidden">
+    <label><input type="checkbox" id="c-clock" checked /> Reloj</label>
+    <label><input type="checkbox" id="c-search" checked /> Buscador</label>
+    <label>Fondo
+      <select id="c-bg">
+        <option value="gradient">Gradiente</option>
+        <option value="solid">Color</option>
+        <option value="image">Imagen</option>
+      </select>
+    </label>
+    <label>Color <input type="color" id="c-solid" value="#161618" /></label>
+    <label>Imagen <input type="file" id="c-file" accept="image/*" /></label>
+  </div>
   <script>
+    const KEY = 'yin-ntp';
+    const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
+    const save = (s) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {} };
+    let cfg = Object.assign({ clock: true, search: true, bg: 'gradient', solid: '#161618', img: null }, load());
+    const $ = (id) => document.getElementById(id);
+    function apply() {
+      document.body.dataset.bg = cfg.bg;
+      if (cfg.bg === 'solid') document.body.style.setProperty('--solid', cfg.solid);
+      if (cfg.bg === 'image' && cfg.img) document.body.style.backgroundImage = `url(${cfg.img})`;
+      else document.body.style.backgroundImage = '';
+      $('clock').classList.toggle('hidden', !cfg.clock);
+      $('date').classList.toggle('hidden', !cfg.clock);
+      $('f').classList.toggle('hidden', !cfg.search);
+      $('c-clock').checked = cfg.clock;
+      $('c-search').checked = cfg.search;
+      $('c-bg').value = cfg.bg;
+      $('c-solid').value = cfg.solid;
+    }
     function tick() {
       const d = new Date();
-      document.getElementById('clock').textContent =
-        String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-      document.getElementById('date').textContent =
-        d.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+      $('clock').textContent = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      $('date').textContent = d.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
     }
+    $('gear').onclick = () => $('panel').classList.toggle('hidden');
+    $('c-clock').onchange = (e) => { cfg.clock = e.target.checked; save(cfg); apply(); };
+    $('c-search').onchange = (e) => { cfg.search = e.target.checked; save(cfg); apply(); };
+    $('c-bg').onchange = (e) => { cfg.bg = e.target.value; save(cfg); apply(); };
+    $('c-solid').oninput = (e) => { cfg.solid = e.target.value; save(cfg); apply(); };
+    $('c-file').onchange = (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      if (f.size > 4 * 1024 * 1024) return; // localStorage tiene ~5MB
+      const r = new FileReader();
+      r.onload = () => { cfg.img = r.result; cfg.bg = 'image'; save(cfg); apply(); };
+      r.readAsDataURL(f);
+    };
     tick();
     setInterval(tick, 10000);
+    apply();
   </script>
 </body>
 </html>

@@ -25,6 +25,11 @@
         <button id="btn-fwd" title="Adelante">→</button>
         <button id="btn-reload" title="Recargar">⟳</button>
         <input id="urlbar" type="text" placeholder="Buscar o escribir dirección" autocomplete="off" spellcheck="false" />
+        <span id="win-controls" class="hidden">
+          <button id="win-min" title="Minimizar">─</button>
+          <button id="win-max" title="Maximizar">□</button>
+          <button id="win-close" title="Cerrar">✕</button>
+        </span>
       </div>
       <div id="content-note">contenido</div>
     </div>
@@ -47,6 +52,10 @@
       <label>Tamaño UI <input type="range" id="set-font" min="0.8" max="1.4" step="0.05" /></label>
       <label class="row"><input type="checkbox" id="set-anim" /> Animaciones</label>
       <label class="row"><input type="checkbox" id="set-forcedark" /> Oscuro forzado en webs</label>
+      <label class="row"><input type="checkbox" id="set-frameless" /> Sin bordes (frameless, requiere reinicio)</label>
+      <label class="row"><input type="checkbox" id="set-showback" /> Botón atrás</label>
+      <label class="row"><input type="checkbox" id="set-showfwd" /> Botón adelante</label>
+      <label class="row"><input type="checkbox" id="set-showreload" /> Botón recargar</label>
       <label>Tema custom (carpeta themes)
         <select id="set-custom"><option value="">(ninguno)</option></select>
       </label>

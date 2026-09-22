@@ -17,6 +17,11 @@ function render() {
   document.documentElement.dataset.compact = s.compact ? 'true' : 'false';
   document.documentElement.dataset.side = s.sidebarSide || 'left';
   document.documentElement.dataset.anim = s.animations === false ? 'false' : 'true';
+  document.documentElement.dataset.frameless = s.frameless ? 'true' : 'false';
+  $('win-controls').classList.toggle('hidden', !s.frameless);
+  $('btn-back').style.display = s.showBack === false ? 'none' : '';
+  $('btn-fwd').style.display = s.showFwd === false ? 'none' : '';
+  $('btn-reload').style.display = s.showReload === false ? 'none' : '';
   document.documentElement.style.setProperty('--accent', s.accent || '#7aa2f7');
   document.getElementById('app').style.zoom = s.fontScale || 1;
 
@@ -127,6 +132,13 @@ settingsEl.addEventListener('click', (e) => {
 $('btn-back').onclick = () => window.yin.navBack();
 $('btn-fwd').onclick = () => window.yin.navForward();
 $('btn-reload').onclick = () => window.yin.navReload();
+$('win-min').onclick = () => window.yin.winMin();
+$('win-max').onclick = () => window.yin.winMax();
+$('win-close').onclick = () => window.yin.winClose();
+$('toolbar').ondblclick = (e) => {
+  if (e.target.closest('button,input')) return;
+  window.yin.winMax();
+};
 urlbar.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && urlbar.value.trim()) window.yin.tabNavigate(null, normalize(urlbar.value));
 });
@@ -152,6 +164,10 @@ async function openSettings() {
   $('set-font').value = s.fontScale || 1;
   $('set-anim').checked = s.animations !== false;
   $('set-forcedark').checked = !!s.forceDark;
+  $('set-frameless').checked = !!s.frameless;
+  $('set-showback').checked = s.showBack !== false;
+  $('set-showfwd').checked = s.showFwd !== false;
+  $('set-showreload').checked = s.showReload !== false;
   $('set-engine').value = s.searchEngine || 'duckduckgo';
   $('set-compact').checked = !!s.compact;
   $('set-side').value = s.sidebarSide || 'left';
@@ -192,6 +208,10 @@ $('set-accent').oninput = (e) => window.yin.settingsSet({ accent: e.target.value
 $('set-font').oninput = (e) => window.yin.settingsSet({ fontScale: +e.target.value || 1 });
 $('set-anim').onchange = (e) => window.yin.settingsSet({ animations: e.target.checked });
 $('set-forcedark').onchange = (e) => window.yin.settingsSet({ forceDark: e.target.checked });
+$('set-frameless').onchange = (e) => window.yin.settingsSet({ frameless: e.target.checked });
+$('set-showback').onchange = (e) => window.yin.settingsSet({ showBack: e.target.checked });
+$('set-showfwd').onchange = (e) => window.yin.settingsSet({ showFwd: e.target.checked });
+$('set-showreload').onchange = (e) => window.yin.settingsSet({ showReload: e.target.checked });
 $('set-engine').onchange = (e) => window.yin.settingsSet({ searchEngine: e.target.value });
 $('set-compact').onchange = (e) => window.yin.settingsSet({ compact: e.target.checked });
 $('set-side').onchange = (e) => window.yin.settingsSet({ sidebarSide: e.target.value });

@@ -86,6 +86,11 @@ html[data-compact="true"] #new-tab::after { content: "+"; font-size: 18px; }
   border: 1px solid var(--border); background: var(--bg); color: var(--fg); outline: none;
 }
 #urlbar:focus { border-color: var(--accent); }
+html[data-frameless="true"] #toolbar { -webkit-app-region: drag; }
+html[data-frameless="true"] #toolbar button,
+html[data-frameless="true"] #toolbar input { -webkit-app-region: no-drag; }
+#win-controls { display: flex; gap: 2px; }
+#win-close:hover { background: rgba(200,60,60,.5) !important; }
 #content-note { display: none; }
 
 /* Ajustes overlay: solo sobre el contenido, el sidebar sigue usable */

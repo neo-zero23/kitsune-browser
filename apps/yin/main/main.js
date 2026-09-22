@@ -17,6 +17,8 @@ const store = new Store({
     fontScale: 1,
     animations: true,
     forceDark: false, // filtro invert en webs (modo oscuro forzado)
+    frameless: false, // sin bordes nativos (requiere reinicio)
+    showBack: true, showFwd: true, showReload: true, // botones toolbar
     customTheme: null, // nombre de archivo en themes/
     compact: false,
     sidebarSide: 'left', // left | right
@@ -83,6 +85,9 @@ function pushTabs() {
       nightStart: store.get('nightStart'), accent: store.get('accent'),
       fontScale: store.get('fontScale'), animations: store.get('animations'),
       forceDark: store.get('forceDark'),
+      frameless: store.get('frameless'),
+      showBack: store.get('showBack'), showFwd: store.get('showFwd'),
+      showReload: store.get('showReload'),
       customTheme: store.get('customTheme'),
       compact: store.get('compact'), sidebarSide: store.get('sidebarSide'),
       adblock: store.get('adblock'), searchEngine: store.get('searchEngine'),
@@ -211,6 +216,7 @@ function createWindow() {
     minWidth: 800,
     minHeight: 540,
     title: 'Kitsune Yin',
+    frame: !store.get('frameless'),
     backgroundColor: '#1b1b1b',
     autoHideMenuBar: true,
     webPreferences: {
@@ -253,6 +259,12 @@ ipcMain.handle('yin:tab-navigate', (_e, payload) => {
 ipcMain.handle('yin:nav-back', () => { const t = tabs.get(activeTab); if (t && t.view.webContents.navigationHistory.canGoBack()) t.view.webContents.navigationHistory.goBack(); });
 ipcMain.handle('yin:nav-forward', () => { const t = tabs.get(activeTab); if (t && t.view.webContents.navigationHistory.canGoForward()) t.view.webContents.navigationHistory.goForward(); });
 ipcMain.handle('yin:nav-reload', () => { const t = tabs.get(activeTab); if (t) t.view.webContents.reload(); });
+ipcMain.handle('yin:win-min', () => { if (win && !win.isDestroyed()) win.minimize(); });
+ipcMain.handle('yin:win-max', () => {
+  if (!win || win.isDestroyed()) return;
+  if (win.isMaximized()) win.unmaximize(); else win.maximize();
+});
+ipcMain.handle('yin:win-close', () => { if (win && !win.isDestroyed()) win.close(); });
 
 ipcMain.handle('yin:ws-switch', (_e, id) => {
   const ws = store.get('workspaces');
@@ -312,6 +324,9 @@ ipcMain.handle('yin:settings-set', (_e, patch) => {
     nightStart: store.get('nightStart'), accent: store.get('accent'),
     fontScale: store.get('fontScale'), animations: store.get('animations'),
     forceDark: store.get('forceDark'),
+    frameless: store.get('frameless'),
+    showBack: store.get('showBack'), showFwd: store.get('showFwd'),
+    showReload: store.get('showReload'),
     customTheme: store.get('customTheme'),
     compact: store.get('compact'), sidebarSide: store.get('sidebarSide'),
     adblock: store.get('adblock'), searchEngine: store.get('searchEngine'),
@@ -332,8 +347,7 @@ ipcMain.handle('yin:settings-set', (_e, patch) => {
   pushTabs();
   return next;
 });
-ipcMain.handle('yin:themes-list', () => ({ dir: themesDir(), files: listThemes() }));
-ipcMain.handle('yin:theme-read', (_e, name) => {
+ipcMain.handle('yin:themes-list', () => ({ dir: themesDir(), files: listThemes() }));ipcMain.handle('yin:theme-read', (_e, name) => {
   try {
     return fs.readFileSync(path.join(themesDir(), path.basename(name)), 'utf-8').slice(0, 200000);
   } catch {

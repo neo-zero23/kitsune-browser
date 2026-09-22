@@ -15,6 +15,9 @@ todo personalizable (temas + userChrome.css), privacidad con adblock a nivel mot
 - [x] window.open → nueva tab. Permisos web denegados por defecto.
 - [x] Belleza: Boosts por sitio (`boosts/DOMINIO.css`), tema sistema/
   programado, acento custom, escala UI, toggle animaciones, oscuro forzado.
+- [x] Belleza 2 (Brave/Helium): newtab auto-customizable (reloj/buscador/
+  fondo/imagen, todo en localStorage sin IPC), frameless + controles propios,
+  toggles de botones de toolbar.
 
 ## v2 (después)
 - Split view (2 vistas), Glance (preview overlay), command palette,
