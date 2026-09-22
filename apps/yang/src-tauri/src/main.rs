@@ -530,16 +530,37 @@ fn tab_reload(tabs: State<'_, Mutex<Tabs>>, label: String) -> Result<(), String>
 }
 
 fn main() {
-    // MODO PATATA (YANG_POTATO=1): recorta procesos del motor a costa de
-    // estabilidad y seguridad. SOLO para PCs de 2GB. Nunca por defecto:
-    // - Windows: un solo proceso (sin sandbox!) + sin GPU.
-    // - Linux: un solo web process + sin compositing GPU.
+    // Switches Chromium probados en Zar (misma base). En Windows van por env
+    // var que lee WebView2 al crear cada proceso (browser + renderers).
+    // OJO: nada de lo rechazado en docs/DECISIONS.md (sin sandbox no,
+    // heap cap agresivo no, matar Translate/MediaRouter SÍ porque Zar
+    // vive sin ellos).
+    #[cfg(target_os = "windows")]
+    std::env::set_var(
+        "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+        "--renderer-process-limit=4 \
+         --disable-extensions --disable-print-preview \
+         --disable-speech-api --disable-speech-synthesis-api \
+         --disable-component-update --disable-domain-reliability --disable-breakpad \
+         --disable-features=Translate,MediaRouter,OptimizationHints,DialMediaRouteProvider \
+         --js-flags=--max-old-space-size=512 \
+         --disk-cache-size=52428800",
+    );
+    // MODO PATATA (YANG_POTATO=1): suma los agresivos (reemplaza la var).
+    // Nunca por defecto: sin sandbox = RCE web compromete al usuario.
     if std::env::var("YANG_POTATO").as_deref() == Ok("1") {
         eprintln!("[yang] MODO PATATA activado (experimental, sin sandbox)");
         #[cfg(target_os = "windows")]
         std::env::set_var(
             "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
-            "--single-process --no-sandbox --disable-gpu --disable-features=Translate,MediaRouter",
+            "--renderer-process-limit=4 \
+             --disable-extensions --disable-print-preview \
+             --disable-speech-api --disable-speech-synthesis-api \
+             --disable-component-update --disable-domain-reliability --disable-breakpad \
+             --disable-features=Translate,MediaRouter,OptimizationHints,DialMediaRouteProvider \
+             --js-flags=--max-old-space-size=512 \
+             --disk-cache-size=52428800 \
+             --single-process --no-sandbox --disable-gpu",
         );
         #[cfg(target_os = "linux")]
         {

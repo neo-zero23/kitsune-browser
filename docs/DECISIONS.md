@@ -13,7 +13,15 @@ Regla: nada que rompa funcionalidad esencial de un navegador.
 - **Conclusión: el binario ya es chico; el tamaño del .exe NO es la RAM.**
   La RAM la ponen los procesos del motor web, que estos flags no tocan.
 
-## Nivel 2a — Flags WebView2 (Windows): RECHAZADO (casi todo)
+## Nivel 2a — Flags WebView2 (Windows): PARIDAD CON ZAR (2026-09-22)
+- Revisado `zar-browser/optimizations.js`: Zar corre switches equivalentes en
+  producción. Portados a Yang vía `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS`:
+  renderer-process-limit=4, disable-extensions/print/speech/component-update/
+  domain-reliability/breakpad, disable-features (Translate,MediaRouter,
+  OptimizationHints,DialMediaRouteProvider — SIN lo de Vulkan/ANGLE que es
+  específico de Linux Intel), js heap 512 (no 256), disk-cache 50MB.
+- Siguen rechazados: background-throttling off, renderer-backgrounding off,
+  gpu-compositing off, DoH (no es tema RAM).
 - `--disable-background-timer-throttling`, `--disable-renderer-backgrounding`,
   `--disable-backgrounding-occluded-windows`: hacen LO CONTRARIO (impiden que
   Chromium ahorre en background = MÁS consumo). No.
