@@ -35,15 +35,25 @@
     <div id="settings-card">
       <h2>Ajustes Yin</h2>
       <label>Tema
-        <select id="set-theme">
+        <select id="set-mode">
           <option value="dark">Oscuro</option>
           <option value="light">Claro</option>
+          <option value="system">Sistema</option>
+          <option value="scheduled">Programado</option>
         </select>
       </label>
+      <label class="row">Día <input type="number" id="set-day" min="0" max="23" /> Noche <input type="number" id="set-night" min="0" max="23" /></label>
+      <label>Acento <input type="color" id="set-accent" /></label>
+      <label>Tamaño UI <input type="range" id="set-font" min="0.8" max="1.4" step="0.05" /></label>
+      <label class="row"><input type="checkbox" id="set-anim" /> Animaciones</label>
+      <label class="row"><input type="checkbox" id="set-forcedark" /> Oscuro forzado en webs</label>
       <label>Tema custom (carpeta themes)
         <select id="set-custom"><option value="">(ninguno)</option></select>
       </label>
       <div class="muted" id="themes-dir"></div>
+      <label>Boosts por sitio <span class="muted">boosts/DOMINIO.css</span></label>
+      <div id="boosts-list"></div>
+      <div class="muted" id="boosts-dir"></div>
       <label>Motor de búsqueda
         <select id="set-engine">
           <option value="duckduckgo">DuckDuckGo</option>

@@ -12,10 +12,13 @@ function esc(s) {
 }
 
 function render() {
+  applyMode();
   const s = state.settings;
-  document.documentElement.dataset.theme = s.theme || 'dark';
   document.documentElement.dataset.compact = s.compact ? 'true' : 'false';
   document.documentElement.dataset.side = s.sidebarSide || 'left';
+  document.documentElement.dataset.anim = s.animations === false ? 'false' : 'true';
+  document.documentElement.style.setProperty('--accent', s.accent || '#7aa2f7');
+  document.getElementById('app').style.zoom = s.fontScale || 1;
 
   wsEl.innerHTML = '';
   for (const w of state.workspaces) {
@@ -66,8 +69,29 @@ function render() {
   }
 }
 
-function hostOf(t) {
-  try {
+// Tema efectivo: dark/light/sistema/programado.
+function effectiveTheme() {
+  const s = state.settings;
+  const mode = s.themeMode || 'dark';
+  if (mode === 'light') return 'light';
+  if (mode === 'dark') return 'dark';
+  if (mode === 'system') {
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  const h = new Date().getHours();
+  const day = s.dayStart ?? 7, night = s.nightStart ?? 19;
+  const isDay = day <= night ? (h >= day && h < night) : (h >= day || h < night);
+  return isDay ? 'light' : 'dark';
+}
+function applyMode() {
+  document.documentElement.dataset.theme = effectiveTheme();
+}
+window.matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', applyMode);
+setInterval(() => {
+  if ((state.settings.themeMode || 'dark') === 'scheduled') applyMode();
+}, 60000);
+
+function hostOf(t) {  try {
     const u = new URL(t.url);
     if (u.protocol === 'file:') return 'Nueva pestaña';
     return u.host || t.title || 'Nueva pestaña';
@@ -121,7 +145,13 @@ $('ws-add').onclick = async () => {
 
 async function openSettings() {
   const s = state.settings;
-  $('set-theme').value = s.theme || 'dark';
+  $('set-mode').value = s.themeMode || 'dark';
+  $('set-day').value = s.dayStart ?? 7;
+  $('set-night').value = s.nightStart ?? 19;
+  $('set-accent').value = s.accent || '#7aa2f7';
+  $('set-font').value = s.fontScale || 1;
+  $('set-anim').checked = s.animations !== false;
+  $('set-forcedark').checked = !!s.forceDark;
   $('set-engine').value = s.searchEngine || 'duckduckgo';
   $('set-compact').checked = !!s.compact;
   $('set-side').value = s.sidebarSide || 'left';
@@ -138,11 +168,30 @@ async function openSettings() {
     sel.appendChild(o);
   }
   sel.value = s.customTheme || '';
+  const boosts = await window.yin.boostsList();
+  $('boosts-dir').textContent = boosts.dir;
+  const bl = $('boosts-list');
+  bl.innerHTML = '';
+  for (const b of boosts.files) {
+    const lab = document.createElement('label');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = b.enabled;
+    cb.onchange = () => window.yin.boostToggle(b.file, cb.checked);
+    lab.append(cb, document.createTextNode(' ' + b.domain));
+    bl.appendChild(lab);
+  }
   await window.yin.contentHide();
   settingsEl.classList.remove('hidden');
 }
 
-$('set-theme').onchange = (e) => window.yin.settingsSet({ theme: e.target.value });
+$('set-mode').onchange = (e) => window.yin.settingsSet({ themeMode: e.target.value });
+$('set-day').onchange = (e) => window.yin.settingsSet({ dayStart: +e.target.value || 0 });
+$('set-night').onchange = (e) => window.yin.settingsSet({ nightStart: +e.target.value || 0 });
+$('set-accent').oninput = (e) => window.yin.settingsSet({ accent: e.target.value });
+$('set-font').oninput = (e) => window.yin.settingsSet({ fontScale: +e.target.value || 1 });
+$('set-anim').onchange = (e) => window.yin.settingsSet({ animations: e.target.checked });
+$('set-forcedark').onchange = (e) => window.yin.settingsSet({ forceDark: e.target.checked });
 $('set-engine').onchange = (e) => window.yin.settingsSet({ searchEngine: e.target.value });
 $('set-compact').onchange = (e) => window.yin.settingsSet({ compact: e.target.checked });
 $('set-side').onchange = (e) => window.yin.settingsSet({ sidebarSide: e.target.value });

@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld('yin', {
   wsDelete: (id) => ipcRenderer.invoke('yin:ws-delete', id),
   tabMoveWs: (id, workspace) => ipcRenderer.invoke('yin:tab-move-ws', { id, workspace }),
   settingsSet: (patch) => ipcRenderer.invoke('yin:settings-set', patch),
+  boostsList: () => ipcRenderer.invoke('yin:boosts-list'),
+  boostToggle: (file, enabled) => ipcRenderer.invoke('yin:boost-toggle', { file, enabled }),
   themesList: () => ipcRenderer.invoke('yin:themes-list'),
   themeRead: (name) => ipcRenderer.invoke('yin:theme-read', name),
   onTabs: (fn) => ipcRenderer.on('yin:tabs', (_e, data) => fn(data)),

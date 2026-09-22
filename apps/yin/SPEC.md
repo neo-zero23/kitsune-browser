@@ -4,15 +4,17 @@ Esencia Zen, sin copiar código: calma visual, tabs verticales, workspaces,
 todo personalizable (temas + userChrome.css), privacidad con adblock a nivel motor.
 
 ## v1 (este scaffold)
-- [ ] Ventana sin menú, fondo oscuro, shell HTML (sidebar + toolbar).
-- [ ] Tabs verticales en sidebar (WebContentsView por tab, show/hide).
-- [ ] Workspaces: crear/renombrar/borrar/cambiar (persistidos).
-- [ ] Toolbar: atrás/adelante/recargar/urlbar. Ctrl+T/W/L.
-- [ ] Temas: variables CSS + `userChrome.css` + carpeta `themes/*.css`.
-- [ ] Compact mode (sidebar a iconos) + sidebar izq/der.
-- [ ] Adblock Ghostery (listas EasyList/uBO) con toggle.
-- [ ] Newtab mínima (form puro, sin JS) + settings como overlay del shell.
-- [ ] window.open → nueva tab. Permisos web denegados por defecto.
+- [x] Ventana sin menú, fondo oscuro, shell HTML (sidebar + toolbar).
+- [x] Tabs verticales en sidebar (WebContentsView por tab, show/hide).
+- [x] Workspaces: crear/renombrar/borrar/cambiar (persistidos).
+- [x] Toolbar: atrás/adelante/recargar/urlbar. Ctrl+T/W/L.
+- [x] Temas: variables CSS + `userChrome.css` + carpeta `themes/*.css`.
+- [x] Compact mode (sidebar a iconos) + sidebar izq/der.
+- [x] Adblock Ghostery (listas EasyList/uBO) con toggle.
+- [x] Newtab con reloj + gradiente (form puro) + settings como overlay.
+- [x] window.open → nueva tab. Permisos web denegados por defecto.
+- [x] Belleza: Boosts por sitio (`boosts/DOMINIO.css`), tema sistema/
+  programado, acento custom, escala UI, toggle animaciones, oscuro forzado.
 
 ## v2 (después)
 - Split view (2 vistas), Glance (preview overlay), command palette,

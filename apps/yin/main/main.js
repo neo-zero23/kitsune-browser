@@ -10,7 +10,13 @@ const Store = require('electron-store');
 const store = new Store({
   name: 'kitsune-yin',
   defaults: {
-    theme: 'dark',
+    themeMode: 'dark', // dark | light | system | scheduled
+    dayStart: 7, // hora inicio modo claro (scheduled)
+    nightStart: 19, // hora inicio modo oscuro (scheduled)
+    accent: null, // color CSS o null (default)
+    fontScale: 1,
+    animations: true,
+    forceDark: false, // filtro invert en webs (modo oscuro forzado)
     customTheme: null, // nombre de archivo en themes/
     compact: false,
     sidebarSide: 'left', // left | right
@@ -73,7 +79,11 @@ function pushTabs() {
     workspaces: store.get('workspaces'),
     activeWorkspace: activeWorkspace(),
     settings: {
-      theme: store.get('theme'), customTheme: store.get('customTheme'),
+      themeMode: store.get('themeMode'), dayStart: store.get('dayStart'),
+      nightStart: store.get('nightStart'), accent: store.get('accent'),
+      fontScale: store.get('fontScale'), animations: store.get('animations'),
+      forceDark: store.get('forceDark'),
+      customTheme: store.get('customTheme'),
       compact: store.get('compact'), sidebarSide: store.get('sidebarSide'),
       adblock: store.get('adblock'), searchEngine: store.get('searchEngine'),
     },
@@ -105,6 +115,14 @@ function createTab(url, workspace) {
   wc.on('page-favicon-updated', (_e, favicons) => {
     tab.favicon = (favicons && favicons[0]) || null;
     pushTabs();
+  });
+  // Boosts por dominio + modo oscuro forzado al pintar el DOM.
+  wc.on('dom-ready', () => {
+    applyBoost(wc);
+    if (store.get('forceDark')) {
+      delete tab.darkKey;
+      applyForceDarkTab(tab);
+    }
   });
   // window.open → nueva tab (misma workspace).
   wc.setWindowOpenHandler(({ url }) => {
@@ -290,12 +308,17 @@ ipcMain.handle('yin:tab-move-ws', (_e, payload) => {
 
 ipcMain.handle('yin:settings-set', (_e, patch) => {
   const cur = {
-    theme: store.get('theme'), customTheme: store.get('customTheme'),
+    themeMode: store.get('themeMode'), dayStart: store.get('dayStart'),
+    nightStart: store.get('nightStart'), accent: store.get('accent'),
+    fontScale: store.get('fontScale'), animations: store.get('animations'),
+    forceDark: store.get('forceDark'),
+    customTheme: store.get('customTheme'),
     compact: store.get('compact'), sidebarSide: store.get('sidebarSide'),
     adblock: store.get('adblock'), searchEngine: store.get('searchEngine'),
   };
   const next = { ...cur, ...(patch || {}) };
   const adblockChanged = next.adblock !== cur.adblock;
+  const forceDarkChanged = next.forceDark !== cur.forceDark;
   for (const k of Object.keys(cur)) store.set(k, next[k]);
   if (adblockChanged) {
     if (next.adblock) initAdblock();
@@ -304,6 +327,7 @@ ipcMain.handle('yin:settings-set', (_e, patch) => {
       blocker = null;
     }
   }
+  if (forceDarkChanged) applyForceDarkAll(next.forceDark);
   layout();
   pushTabs();
   return next;
@@ -315,6 +339,90 @@ ipcMain.handle('yin:theme-read', (_e, name) => {
   } catch {
     return '';
   }
+});
+
+// ---------- Boosts: CSS por dominio (estilo Arc Boosts) ----------
+// boosts/<dominio>.css se inyecta en dom-ready si el host coincide.
+function boostsDir() {
+  const d = path.join(app.getPath('userData'), 'boosts');
+  try { fs.mkdirSync(d, { recursive: true }); } catch {}
+  return d;
+}
+function boostsState() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(boostsDir(), 'boosts.json'), 'utf-8'));
+  } catch {
+    return {};
+  }
+}
+function boostsSave(st) {
+  try { fs.writeFileSync(path.join(boostsDir(), 'boosts.json'), JSON.stringify(st, null, 2)); } catch {}
+}
+function listBoosts() {
+  const dir = boostsDir();
+  const st = boostsState();
+  let files = [];
+  try { files = fs.readdirSync(dir).filter((f) => f.endsWith('.css')); } catch {}
+  return files.map((f) => ({ file: f, domain: f.slice(0, -4), enabled: st[f] !== false }));
+}
+function boostMatches(host, domain) {
+  host = String(host || '').toLowerCase();
+  domain = String(domain || '').toLowerCase();
+  return host === domain || host.endsWith('.' + domain);
+}
+function hostOfUrl(u) {
+  try { return new URL(u).host || ''; } catch { return ''; }
+}
+function applyBoost(wc) {
+  let url = '';
+  try { url = wc.getURL(); } catch { return; }
+  if (!/^https?:\/\//i.test(url)) return;
+  const host = hostOfUrl(url);
+  for (const b of listBoosts()) {
+    if (!b.enabled || !boostMatches(host, b.domain)) continue;
+    try {
+      const css = fs.readFileSync(path.join(boostsDir(), b.file), 'utf-8').slice(0, 200000);
+      if (css.trim()) wc.insertCSS(css).catch(() => {});
+    } catch {}
+  }
+}
+
+// ---------- Modo oscuro forzado (filtro invert global) ----------
+const DARK_CSS = 'html{filter:invert(1) hue-rotate(180deg) !important;background:#111 !important;}img,video,picture,canvas,[style*="background-image"],svg image{filter:invert(1) hue-rotate(180deg) !important;}';
+function applyForceDarkTab(tab) {
+  if (!tab || tab.darkKey) return;
+  let url = '';
+  try { url = tab.view.webContents.getURL(); } catch { return; }
+  if (!/^https?:\/\//i.test(url)) return;
+  tab.view.webContents.insertCSS(DARK_CSS).then((k) => { tab.darkKey = k; }).catch(() => {});
+}
+function applyForceDarkAll(on) {
+  for (const t of tabs.values()) {
+    if (on) {
+      delete t.darkKey;
+      applyForceDarkTab(t);
+    } else if (t.darkKey) {
+      try { t.view.webContents.removeInsertedCSS(t.darkKey).catch(() => {}); } catch {}
+      delete t.darkKey;
+    }
+  }
+}
+
+ipcMain.handle('yin:boosts-list', () => ({ dir: boostsDir(), files: listBoosts() }));
+ipcMain.handle('yin:boost-toggle', (_e, payload) => {
+  const { file, enabled } = payload || {};
+  if (!file) return;
+  const st = boostsState();
+  st[path.basename(file)] = !!enabled;
+  boostsSave(st);
+  // Recargar tabs afectadas para aplicar/quitar.
+  const domain = path.basename(file).replace(/\.css$/i, '');
+  for (const t of tabs.values()) {
+    if (boostMatches(hostOfUrl(t.url), domain)) {
+      try { t.view.webContents.reload(); } catch {}
+    }
+  }
+  pushTabs();
 });
 
 app.whenReady().then(createWindow);
