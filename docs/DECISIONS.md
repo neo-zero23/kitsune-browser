@@ -46,6 +46,15 @@ Regla: nada que rompa funcionalidad esencial de un navegador.
   Page Visibility API). Snake oil. No.
 - Lazy loading: ya existe (las tabs solo se crean al abrirlas).
 
+## Meta <100 MB (PCs de 2GB): MODO PATATA experimental (`YANG_POTATO=1`)
+- Single-process + sin GPU + sin sandbox (Windows) / single web process +
+  sin compositing (Linux). Solo reduce procesos; el motor es el mismo.
+- COSTOS (leer antes de usar): sin sandbox = cualquier RCE web compromete
+  al usuario; single-process = un crash de renderer mata todo; sin GPU =
+  video/Canvas por CPU (más CPU, menos RAM).
+- NUNCA por defecto. Medir: baseline normal vs `YANG_POTATO=1` en la misma
+  máquina y decidir si el trade-off vale para la edición patata.
+
 ## Baseline medido (Windows, Task Manager, con búsqueda DDG abierta)
 - Fila "Administrador de WebView2" (215 MB) = **total del grupo**, no un
   proceso (los hijos suman lo mismo: GPU 68 + renderer DDG 66 + browser 43

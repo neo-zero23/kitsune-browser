@@ -530,6 +530,23 @@ fn tab_reload(tabs: State<'_, Mutex<Tabs>>, label: String) -> Result<(), String>
 }
 
 fn main() {
+    // MODO PATATA (YANG_POTATO=1): recorta procesos del motor a costa de
+    // estabilidad y seguridad. SOLO para PCs de 2GB. Nunca por defecto:
+    // - Windows: un solo proceso (sin sandbox!) + sin GPU.
+    // - Linux: un solo web process + sin compositing GPU.
+    if std::env::var("YANG_POTATO").as_deref() == Ok("1") {
+        eprintln!("[yang] MODO PATATA activado (experimental, sin sandbox)");
+        #[cfg(target_os = "windows")]
+        std::env::set_var(
+            "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+            "--single-process --no-sandbox --disable-gpu --disable-features=Translate,MediaRouter",
+        );
+        #[cfg(target_os = "linux")]
+        {
+            std::env::set_var("WEBKIT_USE_SINGLE_WEB_PROCESS", "1");
+            std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+        }
+    }
     tauri::Builder::default()
         .manage(Mutex::new(Tabs {
             views: HashMap::new(),
