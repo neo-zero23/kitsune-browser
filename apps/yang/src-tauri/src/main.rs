@@ -225,8 +225,10 @@ fn content_rect(window: &Window, chrome_h: f64) -> Result<(f64, f64), String> {
     Ok((w, h))
 }
 
+/// OJO Windows: crear webviews desde un comando SÍNCRONO hace deadlock con
+/// WebView2 (ver "Known issues" en docs de WebviewBuilder). Por eso es async.
 #[tauri::command]
-fn tab_new(
+async fn tab_new(
     app: AppHandle,
     tabs: State<'_, Mutex<Tabs>>,
     label: String,
@@ -236,8 +238,9 @@ fn tab_new(
 }
 
 /// Tab vacía: muestra newtab.html (search pelada, sin homepage).
+/// Async por lo mismo que tab_new (deadlock WebView2 en Windows).
 #[tauri::command]
-fn tab_new_empty(
+async fn tab_new_empty(
     app: AppHandle,
     tabs: State<'_, Mutex<Tabs>>,
     label: String,
