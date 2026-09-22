@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kitsune Yin</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <style id="user-theme"></style>
+  <style id="user-chrome"></style>
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <div id="workspaces"></div>
+      <div id="tabs"></div>
+      <div id="side-bottom">
+        <button id="new-tab" title="Nueva pestaña (Ctrl+T)">+</button>
+        <button id="btn-compact" title="Modo compacto">◧</button>
+        <button id="btn-settings" title="Ajustes">⚙</button>
+      </div>
+    </aside>
+    <div id="main">
+      <div id="toolbar">
+        <button id="btn-back" title="Atrás">←</button>
+        <button id="btn-fwd" title="Adelante">→</button>
+        <button id="btn-reload" title="Recargar">⟳</button>
+        <input id="urlbar" type="text" placeholder="Buscar o escribir dirección" autocomplete="off" spellcheck="false" />
+      </div>
+      <div id="content-note">contenido</div>
+    </div>
+  </div>
+
+  <!-- Panel ajustes (overlay del shell) -->
+  <div id="settings" class="hidden">
+    <div id="settings-card">
+      <h2>Ajustes Yin</h2>
+      <label>Tema
+        <select id="set-theme">
+          <option value="dark">Oscuro</option>
+          <option value="light">Claro</option>
+        </select>
+      </label>
+      <label>Tema custom (carpeta themes)
+        <select id="set-custom"><option value="">(ninguno)</option></select>
+      </label>
+      <div class="muted" id="themes-dir"></div>
+      <label>Motor de búsqueda
+        <select id="set-engine">
+          <option value="duckduckgo">DuckDuckGo</option>
+          <option value="brave">Brave</option>
+          <option value="mojeek">Mojeek</option>
+          <option value="google">Google</option>
+        </select>
+      </label>
+      <label class="row"><input type="checkbox" id="set-compact" /> Compacto</label>
+      <label>Sidebar
+        <select id="set-side">
+          <option value="left">Izquierda</option>
+          <option value="right">Derecha</option>
+        </select>
+      </label>
+      <label class="row"><input type="checkbox" id="set-adblock" /> Adblock (listas EasyList/uBO)</label>
+      <div class="row end">
+        <button id="ws-add">+ Workspace</button>
+        <button id="settings-close">Cerrar</button>
+      </div>
+      <p class="muted">userChrome.css en la carpeta themes se aplica siempre encima de todo (estilo Zen Mods).</p>
+    </div>
+  </div>
+
+  <script src="./renderer.js"></script>
+</body>
+</html>

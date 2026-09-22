@@ -1,0 +1,111 @@
+/* Kitsune Yin — tema por variables. Todo custom: userChrome.css encima. */
+:root {
+  color-scheme: dark;
+  --bg: #1b1b1b;
+  --bar: #232326;
+  --fg: #e8e8ea;
+  --muted: #9a9aa0;
+  --border: #333338;
+  --accent: #7aa2f7;
+  --tabstrip-h: 0px;
+  --toolbar-h: 52px;
+  --sbw: 248px;
+  --radius: 10px;
+}
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f4f5;
+  --bar: #ffffff;
+  --fg: #1a1a1a;
+  --muted: #666;
+  --border: #ddd;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; }
+.hidden { display: none !important; }
+
+#app { display: flex; height: 100vh; width: 100vw; }
+html[data-side="right"] #app { flex-direction: row-reverse; }
+
+#sidebar {
+  width: var(--sbw); min-width: var(--sbw); height: 100vh;
+  background: var(--bar); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 8px; gap: 8px;
+}
+html[data-side="right"] #sidebar { border-right: none; border-left: 1px solid var(--border); }
+html[data-compact="true"] { --sbw: 56px; }
+html[data-compact="true"] #sidebar .tab .host,
+html[data-compact="true"] #sidebar .ws .ws-name,
+html[data-compact="true"] #new-tab { font-size: 0; }
+html[data-compact="true"] #new-tab::after { content: "+"; font-size: 18px; }
+
+#workspaces { display: flex; flex-direction: column; gap: 4px; }
+.ws {
+  display: flex; align-items: center; gap: 8px; padding: 7px 9px;
+  border: none; border-radius: var(--radius); background: transparent;
+  color: var(--fg); font-size: 13px; cursor: pointer; text-align: left;
+}
+.ws:hover { background: rgba(127,127,127,.15); }
+.ws.active { background: rgba(122,162,247,.18); }
+.ws .ws-x { margin-left: auto; opacity: 0; border: none; background: transparent; color: inherit; cursor: pointer; }
+.ws:hover .ws-x { opacity: .6; }
+
+#tabs { flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; scrollbar-width: thin; }
+.tab {
+  display: flex; align-items: center; gap: 8px; padding: 8px 9px;
+  border: none; border-radius: var(--radius); background: transparent;
+  color: var(--fg); font-size: 13px; cursor: pointer; text-align: left; min-width: 0;
+}
+.tab:hover { background: rgba(127,127,127,.15); }
+.tab.active { background: rgba(122,162,247,.18); }
+.tab img.fav { width: 16px; height: 16px; border-radius: 4px; flex: none; }
+.tab .host { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.tab .x { border: none; background: transparent; color: inherit; opacity: 0; cursor: pointer; padding: 2px 5px; border-radius: 5px; }
+.tab:hover .x { opacity: .6; }
+.tab .x:hover { opacity: 1; background: rgba(127,127,127,.25); }
+
+#side-bottom { display: flex; gap: 4px; }
+#side-bottom button {
+  flex: 1; border: none; background: transparent; color: var(--fg);
+  font-size: 16px; cursor: pointer; padding: 7px 0; border-radius: 8px; opacity: .75;
+}
+#side-bottom button:hover { opacity: 1; background: rgba(127,127,127,.2); }
+
+#main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#toolbar {
+  height: var(--toolbar-h); display: flex; align-items: center; gap: 4px;
+  background: var(--bar); border-bottom: 1px solid var(--border); padding: 0 10px;
+}
+#toolbar button {
+  border: none; background: transparent; color: var(--fg); font-size: 16px;
+  cursor: pointer; padding: 7px 10px; border-radius: 8px; opacity: .8;
+}
+#toolbar button:hover { opacity: 1; background: rgba(127,127,127,.2); }
+#urlbar {
+  flex: 1; padding: 9px 15px; font-size: 14px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--fg); outline: none;
+}
+#urlbar:focus { border-color: var(--accent); }
+#content-note { display: none; }
+
+/* Ajustes overlay */
+#settings {
+  position: fixed; inset: 0; background: rgba(0,0,0,.55);
+  display: flex; align-items: center; justify-content: center; z-index: 50;
+}
+#settings-card {
+  width: min(430px, 90vw); max-height: 86vh; overflow-y: auto;
+  background: var(--bar); border: 1px solid var(--border); border-radius: 14px;
+  padding: 20px; display: flex; flex-direction: column; gap: 12px;
+}
+#settings-card h2 { margin: 0 0 4px 0; font-size: 18px; }
+#settings-card label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
+#settings-card label.row { flex-direction: row; align-items: center; gap: 8px; }
+#settings-card select, #settings-card button {
+  background: var(--bg); color: var(--fg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; font-size: 13px;
+}
+#settings-card button { cursor: pointer; }
+#settings-card button:hover { border-color: var(--accent); }
+.row.end { display: flex; flex-direction: row; justify-content: flex-end; gap: 8px; }
+.muted { font-size: 11px; color: var(--muted); }

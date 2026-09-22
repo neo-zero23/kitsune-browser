@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    :root { color-scheme: dark; }
+    html, body {
+      margin: 0; height: 100%; overflow: hidden;
+      background: #1b1b1b; color: #e8e8ea;
+      font-family: system-ui, sans-serif;
+    }
+    body { display: flex; align-items: center; justify-content: center; }
+    form { width: min(520px, 80vw); }
+    input {
+      width: 100%; padding: 14px 20px; font-size: 16px;
+      border-radius: 999px; border: 1px solid #333;
+      background: #232326; color: #e8e8ea; outline: none;
+    }
+    input:focus { border-color: #7aa2f7; }
+  </style>
+</head>
+<body>
+  <!-- Sin JS: el form navega solo. q=dominio va directo por el handler de abajo. -->
+  <form id="f" action="https://duckduckgo.com/" method="get">
+    <input name="q" type="text" placeholder="Buscar en la web..." autocomplete="off" spellcheck="false" autofocus />
+  </form>
+</body>
+</html>

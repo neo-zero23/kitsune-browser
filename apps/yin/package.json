@@ -1,0 +1,17 @@
+{
+  "name": "kitsune-yin",
+  "version": "0.1.0",
+  "description": "Kitsune Yin — navegador avanzado (Electron). Esencia Zen: vertical, workspaces, calma, userChrome.",
+  "main": "main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "fix-electron": "bash scripts/fix-electron.sh"
+  },
+  "devDependencies": {
+    "electron": "38.8.6"
+  },
+  "dependencies": {
+    "@ghostery/adblocker-electron": "^2.18.0",
+    "electron-store": "^8.2.0"
+  }
+}

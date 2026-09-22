@@ -55,8 +55,9 @@ No-objetivos Yang: adblock de red, extensiones, workspaces, splits, sync, contai
 
 ## Orden
 
-1. Reestructurar repo a `apps/` (mover Electron → `apps/yin/`)
-2. Scaffold `apps/yang/` Tauri + correr
-3. Yang funcional mínimo → release LTS 1.0
-4. Launcher
-5. Yin (retomar scaffold Electron existente)
+1. ~~Reestructurar repo a `apps/`~~ ✅ hecho.
+2. ~~Scaffold `apps/yang/` Tauri + correr~~ ✅ LTS funcional (Linux + Windows).
+3. ~~Yang funcional mínimo → release LTS 1.0~~ ✅ en uso, baseline medido.
+4. Launcher (pendiente).
+5. **Yin (en progreso)**: scaffold Electron en `apps/yin/` — vertical tabs,
+   workspaces, temas + userChrome.css, adblock Ghostery. Ver `apps/yin/SPEC.md`.
