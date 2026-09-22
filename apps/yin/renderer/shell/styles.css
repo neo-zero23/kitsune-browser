@@ -86,6 +86,38 @@ html[data-compact="true"] #new-tab::after { content: "+"; font-size: 18px; }
   border: 1px solid var(--border); background: var(--bg); color: var(--fg); outline: none;
 }
 #urlbar:focus { border-color: var(--accent); }
+#btn-star.on { color: var(--accent); opacity: 1; }
+
+/* Tabs horizontales arriba */
+#tabbar-top { background: var(--bar); border-bottom: 1px solid var(--border); padding: 4px 8px 0 8px; }
+html[data-tabpos="side"] #tabbar-top { display: none; }
+html[data-tabpos="top"] #sidebar #tabs { display: none; }
+#tabs-top { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+#tabs-top::-webkit-scrollbar { display: none; }
+#tabs-top .tab { border-radius: 8px 8px 0 0; max-width: 190px; min-width: 90px; background: transparent; }
+#tabs-top .tab.active { background: var(--bg); }
+
+/* Barra de bookmarks */
+#bookmarks {
+  display: flex; gap: 2px; align-items: center; overflow-x: auto; scrollbar-width: none;
+  background: var(--bar); border-bottom: 1px solid var(--border);
+  padding: 2px 10px; font-size: 12px; min-height: 0;
+}
+#bookmarks:empty { display: none; }
+#bookmarks::-webkit-scrollbar { display: none; }
+#bookmarks button {
+  border: none; background: transparent; color: var(--fg); cursor: pointer;
+  padding: 4px 9px; border-radius: 7px; white-space: nowrap; opacity: .85; font-size: 12px;
+}
+#bookmarks button:hover { opacity: 1; background: rgba(127,127,127,.2); }
+
+/* Transparencia */
+html[data-transparency="true"], html[data-transparency="true"] body,
+html[data-transparency="true"] #app { background: transparent; }
+html[data-transparency="true"] {
+  --bg: rgba(27,27,27,.72);
+  --bar: rgba(35,35,38,.78);
+}
 html[data-frameless="true"] #toolbar { -webkit-app-region: drag; }
 html[data-frameless="true"] #toolbar button,
 html[data-frameless="true"] #toolbar input { -webkit-app-region: no-drag; }

@@ -3,7 +3,36 @@ const $ = (id) => document.getElementById(id);
 const wsEl = $('workspaces'), tabsEl = $('tabs'), urlbar = $('urlbar');
 const settingsEl = $('settings');
 
-let state = { tabs: [], workspaces: [], activeWorkspace: 'main', settings: {} };
+let state = { tabs: [], workspaces: [], activeWorkspace: 'main', settings: {}, bookmarks: [] };
+
+function shade(hex, amt) {
+  const n = hex.replace('#', '');
+  const v = [0, 2, 4].map((i) => {
+    const c = Math.min(255, Math.max(0, parseInt(n.slice(i, i + 2), 16) + amt));
+    return c.toString(16).padStart(2, '0');
+  });
+  return '#' + v.join('');
+}
+
+function makeTabChip(t) {
+  const b = document.createElement('button');
+  b.className = 'tab' + (t.active ? ' active' : '');
+  const fav = t.favicon ? `<img class="fav" src="${esc(t.favicon)}" />` : '';
+  b.innerHTML = `${fav}<span class="host">${esc(hostOf(t))}</span>`;
+  b.title = t.url + ' (doble click: mover de workspace)';
+  b.onclick = () => window.yin.tabActivate(t.id);
+  const x = document.createElement('span');
+  x.className = 'x';
+  x.textContent = '✕';
+  x.onclick = (e) => { e.stopPropagation(); window.yin.tabClose(t.id); };
+  b.appendChild(x);
+  b.ondblclick = () => {
+    const ids = state.workspaces.map((w) => w.id);
+    const next = ids[(ids.indexOf(t.workspace) + 1) % ids.length];
+    window.yin.tabMoveWs(t.id, next);
+  };
+  return b;
+}
 
 function esc(s) {
   const d = document.createElement('div');
@@ -18,12 +47,21 @@ function render() {
   document.documentElement.dataset.side = s.sidebarSide || 'left';
   document.documentElement.dataset.anim = s.animations === false ? 'false' : 'true';
   document.documentElement.dataset.frameless = s.frameless ? 'true' : 'false';
+  document.documentElement.dataset.tabpos = s.tabPosition || 'side';
+  document.documentElement.dataset.transparency = s.transparency ? 'true' : 'false';
+  document.documentElement.style.setProperty('--accent', s.accent || '#7aa2f7');
+  if (s.themeBase) {
+    document.documentElement.style.setProperty('--bg', s.themeBase);
+    document.documentElement.style.setProperty('--bar', shade(s.themeBase, 14));
+  } else {
+    document.documentElement.style.removeProperty('--bg');
+    document.documentElement.style.removeProperty('--bar');
+  }
+  document.getElementById('app').style.zoom = s.fontScale || 1;
   $('win-controls').classList.toggle('hidden', !s.frameless);
   $('btn-back').style.display = s.showBack === false ? 'none' : '';
   $('btn-fwd').style.display = s.showFwd === false ? 'none' : '';
   $('btn-reload').style.display = s.showReload === false ? 'none' : '';
-  document.documentElement.style.setProperty('--accent', s.accent || '#7aa2f7');
-  document.getElementById('app').style.zoom = s.fontScale || 1;
 
   wsEl.innerHTML = '';
   for (const w of state.workspaces) {
@@ -52,26 +90,35 @@ function render() {
 
   tabsEl.innerHTML = '';
   const mine = state.tabs.filter((t) => t.workspace === state.activeWorkspace);
-  for (const t of mine) {
-    const b = document.createElement('button');
-    b.className = 'tab' + (t.active ? ' active' : '');
-    const fav = t.favicon ? `<img class="fav" src="${esc(t.favicon)}" />` : '';
-    b.innerHTML = `${fav}<span class="host">${esc(hostOf(t))}</span>`;
-    b.title = t.url;
-    b.onclick = () => window.yin.tabActivate(t.id);
-    const x = document.createElement('span');
-    x.className = 'x';
-    x.textContent = '✕';
-    x.onclick = (e) => { e.stopPropagation(); window.yin.tabClose(t.id); };
-    b.appendChild(x);
-    // Arrastrar tab a otro workspace: doble click la mueve al siguiente.
-    b.ondblclick = () => {
-      const ids = state.workspaces.map((w) => w.id);
-      const next = ids[(ids.indexOf(t.workspace) + 1) % ids.length];
-      window.yin.tabMoveWs(t.id, next);
-    };
-    tabsEl.appendChild(b);
+  for (const t of mine) tabsEl.appendChild(makeTabChip(t));
+
+  // Tabs horizontales (modo top).
+  const topEl = $('tabs-top');
+  if (topEl) {
+    topEl.innerHTML = '';
+    for (const t of mine) topEl.appendChild(makeTabChip(t));
   }
+
+  // Bookmarks.
+  const bm = $('bookmarks');
+  bm.innerHTML = '';
+  for (const m of state.bookmarks || []) {
+    const b = document.createElement('button');
+    b.textContent = m.title || m.url;
+    b.title = m.url + ' (doble click borra)';
+    b.onclick = () => window.yin.tabNavigate(null, m.url);
+    b.ondblclick = () => {
+      if (confirm(`Borrar bookmark "${m.title}"?`)) window.yin.bookmarkDel(m.url);
+    };
+    bm.appendChild(b);
+  }
+
+  // Estrella según tab activa.
+  const cur = state.tabs.find((t) => t.active);
+  const marked = cur && /^https?:\/\//i.test(cur.url || '') &&
+    (state.bookmarks || []).some((m) => m.url === cur.url);
+  $('btn-star').textContent = marked ? '★' : '☆';
+  $('btn-star').classList.toggle('on', !!marked);
 }
 
 // Tema efectivo: dark/light/sistema/programado.
@@ -132,6 +179,7 @@ settingsEl.addEventListener('click', (e) => {
 $('btn-back').onclick = () => window.yin.navBack();
 $('btn-fwd').onclick = () => window.yin.navForward();
 $('btn-reload').onclick = () => window.yin.navReload();
+$('btn-star').onclick = () => window.yin.bookmarkToggle();
 $('win-min').onclick = () => window.yin.winMin();
 $('win-max').onclick = () => window.yin.winMax();
 $('win-close').onclick = () => window.yin.winClose();
@@ -161,6 +209,9 @@ async function openSettings() {
   $('set-day').value = s.dayStart ?? 7;
   $('set-night').value = s.nightStart ?? 19;
   $('set-accent').value = s.accent || '#7aa2f7';
+  $('set-base').value = s.themeBase || '#1b1b1b';
+  $('set-transparency').checked = !!s.transparency;
+  $('set-tabpos').value = s.tabPosition || 'side';
   $('set-font').value = s.fontScale || 1;
   $('set-anim').checked = s.animations !== false;
   $('set-forcedark').checked = !!s.forceDark;
@@ -205,6 +256,10 @@ $('set-mode').onchange = (e) => window.yin.settingsSet({ themeMode: e.target.val
 $('set-day').onchange = (e) => window.yin.settingsSet({ dayStart: +e.target.value || 0 });
 $('set-night').onchange = (e) => window.yin.settingsSet({ nightStart: +e.target.value || 0 });
 $('set-accent').oninput = (e) => window.yin.settingsSet({ accent: e.target.value });
+$('set-base').oninput = (e) => window.yin.settingsSet({ themeBase: e.target.value });
+$('set-basedefault').onclick = () => window.yin.settingsSet({ themeBase: null });
+$('set-transparency').onchange = (e) => window.yin.settingsSet({ transparency: e.target.checked });
+$('set-tabpos').onchange = (e) => window.yin.settingsSet({ tabPosition: e.target.value });
 $('set-font').oninput = (e) => window.yin.settingsSet({ fontScale: +e.target.value || 1 });
 $('set-anim').onchange = (e) => window.yin.settingsSet({ animations: e.target.checked });
 $('set-forcedark').onchange = (e) => window.yin.settingsSet({ forceDark: e.target.checked });

@@ -18,6 +18,9 @@ todo personalizable (temas + userChrome.css), privacidad con adblock a nivel mot
 - [x] Belleza 2 (Brave/Helium): newtab auto-customizable (reloj/buscador/
   fondo/imagen, todo en localStorage sin IPC), frameless + controles propios,
   toggles de botones de toolbar.
+- [x] Belleza 3: bookmarks bar (★ toggle, doble click borra), tabs
+  verticales/horizontales, transparencia de ventana, color base del tema.
+  (La urlbar ya existía en la toolbar.)
 
 ## v2 (después)
 - Split view (2 vistas), Glance (preview overlay), command palette,

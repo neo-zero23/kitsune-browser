@@ -13,6 +13,8 @@ contextBridge.exposeInMainWorld('yin', {
   winMin: () => ipcRenderer.invoke('yin:win-min'),
   winMax: () => ipcRenderer.invoke('yin:win-max'),
   winClose: () => ipcRenderer.invoke('yin:win-close'),
+  bookmarkToggle: () => ipcRenderer.invoke('yin:bookmark-toggle'),
+  bookmarkDel: (url) => ipcRenderer.invoke('yin:bookmark-del', url),
   wsSwitch: (id) => ipcRenderer.invoke('yin:ws-switch', id),
   wsCreate: (name) => ipcRenderer.invoke('yin:ws-create', name),
   wsRename: (id, name, icon) => ipcRenderer.invoke('yin:ws-rename', { id, name, icon }),

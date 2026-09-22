@@ -14,6 +14,9 @@ const store = new Store({
     dayStart: 7, // hora inicio modo claro (scheduled)
     nightStart: 19, // hora inicio modo oscuro (scheduled)
     accent: null, // color CSS o null (default)
+    themeBase: null, // color base del tema o null (default)
+    transparency: false, // ventana transparente (requiere reinicio)
+    tabPosition: 'side', // side | top (tabs verticales u horizontales)
     fontScale: 1,
     animations: true,
     forceDark: false, // filtro invert en webs (modo oscuro forzado)
@@ -26,6 +29,7 @@ const store = new Store({
     searchEngine: 'duckduckgo', // duckduckgo | brave | mojeek | google
     workspaces: [{ id: 'main', name: 'Principal', icon: '🏠' }],
     activeWorkspace: 'main',
+    bookmarks: [], // [{url, title}]
   },
 });
 
@@ -83,6 +87,8 @@ function pushTabs() {
     settings: {
       themeMode: store.get('themeMode'), dayStart: store.get('dayStart'),
       nightStart: store.get('nightStart'), accent: store.get('accent'),
+      themeBase: store.get('themeBase'), transparency: store.get('transparency'),
+      tabPosition: store.get('tabPosition'),
       fontScale: store.get('fontScale'), animations: store.get('animations'),
       forceDark: store.get('forceDark'),
       frameless: store.get('frameless'),
@@ -92,6 +98,7 @@ function pushTabs() {
       compact: store.get('compact'), sidebarSide: store.get('sidebarSide'),
       adblock: store.get('adblock'), searchEngine: store.get('searchEngine'),
     },
+    bookmarks: store.get('bookmarks'),
   });
 }
 
@@ -217,6 +224,7 @@ function createWindow() {
     minHeight: 540,
     title: 'Kitsune Yin',
     frame: !store.get('frameless'),
+    transparent: !!store.get('transparency'),
     backgroundColor: '#1b1b1b',
     autoHideMenuBar: true,
     webPreferences: {
@@ -265,6 +273,28 @@ ipcMain.handle('yin:win-max', () => {
   if (win.isMaximized()) win.unmaximize(); else win.maximize();
 });
 ipcMain.handle('yin:win-close', () => { if (win && !win.isDestroyed()) win.close(); });
+
+// ---------- Bookmarks ----------
+function pageUrlOk(u) {
+  return /^https?:\/\//i.test(u || '');
+}
+ipcMain.handle('yin:bookmark-toggle', () => {
+  const t = tabs.get(activeTab);
+  if (!t || !pageUrlOk(t.url)) return false;
+  let marks = store.get('bookmarks');
+  if (marks.find((m) => m.url === t.url)) {
+    marks = marks.filter((m) => m.url !== t.url);
+  } else {
+    marks.push({ url: t.url, title: (t.title || t.url).slice(0, 80) });
+  }
+  store.set('bookmarks', marks);
+  pushTabs();
+  return !!marks.find((m) => t.url === m.url);
+});
+ipcMain.handle('yin:bookmark-del', (_e, url) => {
+  store.set('bookmarks', store.get('bookmarks').filter((m) => m.url !== url));
+  pushTabs();
+});
 
 ipcMain.handle('yin:ws-switch', (_e, id) => {
   const ws = store.get('workspaces');
@@ -322,6 +352,8 @@ ipcMain.handle('yin:settings-set', (_e, patch) => {
   const cur = {
     themeMode: store.get('themeMode'), dayStart: store.get('dayStart'),
     nightStart: store.get('nightStart'), accent: store.get('accent'),
+    themeBase: store.get('themeBase'), transparency: store.get('transparency'),
+    tabPosition: store.get('tabPosition'),
     fontScale: store.get('fontScale'), animations: store.get('animations'),
     forceDark: store.get('forceDark'),
     frameless: store.get('frameless'),
