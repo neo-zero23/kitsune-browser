@@ -46,8 +46,12 @@ Regla: nada que rompa funcionalidad esencial de un navegador.
   Page Visibility API). Snake oil. No.
 - Lazy loading: ya existe (las tabs solo se crean al abrirlas).
 
-## Lo que SÍ se hizo
-- `benchmark.sh`: mide RSS idle / 1 tab / 3 tabs + tamaño binario.
-- `YANG_AUTOTAB=url1,url2,...`: varias tabs al arranque (para benchmark).
-- Timestamps `[N.Ns]` en el log (mide arranque en frío).
-- Baseline pendiente: correr benchmark ANTES de cualquier otro cambio.
+## Baseline medido (Windows, Task Manager, con YouTube abierto)
+- Binario Rust (kitsune-yang): **~4 MB** (vs ~100 MB+ que pesaría el runtime Electron).
+- WebView2 browser process: ~215 MB + GPU ~68 MB (costo fijo del motor).
+- Renderer YouTube (página pesada): ~66 MB. UI propia: ~25 MB.
+- **Total Yang: ~435 MB vs Zen (Firefox): ~1143 MB.** ~38% del consumo.
+- Conclusión: el costo fijo lo pone WebView2 (~290 MB entre browser+GPU);
+  nuestro código (~4 MB) es irrelevante. Optimizar el binario más no mueve
+  la aguja. Único lever real futuro: menos procesos (tab discarding,
+  diferido) o flags experimentales tipo single-process (inestable, no default).
