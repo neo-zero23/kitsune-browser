@@ -88,6 +88,9 @@ $('new-tab').onclick = () => window.yin.tabNew('');
 $('btn-compact').onclick = () => window.yin.settingsSet({ compact: !state.settings.compact });
 $('btn-settings').onclick = openSettings;
 $('settings-close').onclick = () => settingsEl.classList.add('hidden');
+settingsEl.addEventListener('click', (e) => {
+  if (e.target === settingsEl) settingsEl.classList.add('hidden');
+});
 $('btn-back').onclick = () => window.yin.navBack();
 $('btn-fwd').onclick = () => window.yin.navForward();
 $('btn-reload').onclick = () => window.yin.navReload();

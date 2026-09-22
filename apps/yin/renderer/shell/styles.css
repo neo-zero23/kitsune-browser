@@ -88,11 +88,13 @@ html[data-compact="true"] #new-tab::after { content: "+"; font-size: 18px; }
 #urlbar:focus { border-color: var(--accent); }
 #content-note { display: none; }
 
-/* Ajustes overlay */
+/* Ajustes overlay: solo sobre el contenido, el sidebar sigue usable */
 #settings {
-  position: fixed; inset: 0; background: rgba(0,0,0,.55);
+  position: fixed; top: 0; bottom: 0; left: var(--sbw); right: 0;
+  background: rgba(0,0,0,.55);
   display: flex; align-items: center; justify-content: center; z-index: 50;
 }
+html[data-side="right"] #settings { left: 0; right: var(--sbw); }
 #settings-card {
   width: min(430px, 90vw); max-height: 86vh; overflow-y: auto;
   background: var(--bar); border: 1px solid var(--border); border-radius: 14px;
