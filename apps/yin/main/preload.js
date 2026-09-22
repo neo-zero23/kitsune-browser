@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('yin', {
   tabNew: (url) => ipcRenderer.invoke('yin:tab-new', url),
   tabClose: (id) => ipcRenderer.invoke('yin:tab-close', id),
   tabActivate: (id) => ipcRenderer.invoke('yin:tab-activate', id),
+  contentHide: () => ipcRenderer.invoke('yin:content-hide'),
   tabNavigate: (id, url) => ipcRenderer.invoke('yin:tab-navigate', { id, url }),
   navBack: () => ipcRenderer.invoke('yin:nav-back'),
   navForward: () => ipcRenderer.invoke('yin:nav-forward'),

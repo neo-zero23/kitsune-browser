@@ -221,6 +221,11 @@ ipcMain.handle('yin:tab-new', (_e, url) => {
 });
 ipcMain.handle('yin:tab-close', (_e, id) => { closeTab(id || activeTab); });
 ipcMain.handle('yin:tab-activate', (_e, id) => activateTab(id));
+// Oculta la vista activa (para mostrar overlays del shell por encima).
+ipcMain.handle('yin:content-hide', () => {
+  const t = tabs.get(activeTab);
+  if (t) { try { win.contentView.removeChildView(t.view); } catch {} }
+});
 ipcMain.handle('yin:tab-navigate', (_e, payload) => {
   const { id, url } = payload || {};
   const t = tabs.get(id || activeTab);

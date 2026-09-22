@@ -86,10 +86,19 @@ function normalize(input) {
 
 $('new-tab').onclick = () => window.yin.tabNew('');
 $('btn-compact').onclick = () => window.yin.settingsSet({ compact: !state.settings.compact });
+function activeId() {
+  const t = state.tabs.find((t) => t.active);
+  return t ? t.id : null;
+}
+function closeSettings() {
+  settingsEl.classList.add('hidden');
+  const id = activeId();
+  if (id) window.yin.tabActivate(id);
+}
 $('btn-settings').onclick = openSettings;
-$('settings-close').onclick = () => settingsEl.classList.add('hidden');
+$('settings-close').onclick = closeSettings;
 settingsEl.addEventListener('click', (e) => {
-  if (e.target === settingsEl) settingsEl.classList.add('hidden');
+  if (e.target === settingsEl) closeSettings();
 });
 $('btn-back').onclick = () => window.yin.navBack();
 $('btn-fwd').onclick = () => window.yin.navForward();
@@ -129,6 +138,7 @@ async function openSettings() {
     sel.appendChild(o);
   }
   sel.value = s.customTheme || '';
+  await window.yin.contentHide();
   settingsEl.classList.remove('hidden');
 }
 
