@@ -259,17 +259,24 @@ fn log_path() -> std::path::PathBuf {
     p
 }
 
+fn uptime_secs() -> f64 {
+    use std::sync::OnceLock;
+    static T0: OnceLock<std::time::Instant> = OnceLock::new();
+    T0.get_or_init(std::time::Instant::now).elapsed().as_secs_f64()
+}
+
 /// Log dual: consola (dev) + archivo (release sin consola, ej. Windows).
 /// Ver en Windows con Win+R → %TEMP% → kitsune-yang-debug.log
 fn log_line(msg: &str) {
-    eprintln!("[yang] {msg}");
+    let t = uptime_secs();
+    eprintln!("[yang][{t:.1}s] {msg}");
     if let Ok(mut f) = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
         .open(log_path())
     {
         use std::io::Write;
-        let _ = writeln!(f, "{msg}");
+        let _ = writeln!(f, "[{t:.1}s] {msg}");
     }
 }
 
@@ -533,21 +540,29 @@ fn main() {
             // Log fresco por arranque.
             let _ = std::fs::remove_file(log_path());
             log_line("arranque yang");
-            // Debug/test: YANG_AUTOTAB=url abre una tab al arrancar (para screenshots sin teclado).
-            if let Ok(url) = std::env::var("YANG_AUTOTAB") {
+            // Debug/test: YANG_AUTOTAB=url1,url2,... abre tabs al arrancar
+            // (para screenshots/benchmark sin teclado).
+            if let Ok(urls) = std::env::var("YANG_AUTOTAB") {
                 let handle = app.handle().clone();
                 std::thread::spawn(move || {
                     std::thread::sleep(std::time::Duration::from_secs(2));
-                    let state = handle.state::<Mutex<Tabs>>();
-                    let url = match parse_url(&url) {
-                        Ok(u) => WebviewUrl::External(u),
-                        Err(e) => {
-                            eprintln!("[yang] autotab url inválida: {e}");
-                            return;
+                    for (i, url) in urls.split(',').enumerate() {
+                        let state = handle.state::<Mutex<Tabs>>();
+                        let url = match parse_url(url.trim()) {
+                            Ok(u) => WebviewUrl::External(u),
+                            Err(e) => {
+                                eprintln!("[yang] autotab url inválida: {e}");
+                                continue;
+                            }
+                        };
+                        if let Err(e) = create_tab_view(
+                            &handle,
+                            &state,
+                            format!("tab-test-{}", i + 1),
+                            url,
+                        ) {
+                            eprintln!("[yang] autotab error: {e}");
                         }
-                    };
-                    if let Err(e) = create_tab_view(&handle, &state, "tab-test".into(), url) {
-                        eprintln!("[yang] autotab error: {e}");
                     }
                 });
             }
