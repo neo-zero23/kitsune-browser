@@ -46,12 +46,13 @@ Regla: nada que rompa funcionalidad esencial de un navegador.
   Page Visibility API). Snake oil. No.
 - Lazy loading: ya existe (las tabs solo se crean al abrirlas).
 
-## Baseline medido (Windows, Task Manager, con YouTube abierto)
-- Binario Rust (kitsune-yang): **~4 MB** (vs ~100 MB+ que pesaría el runtime Electron).
-- WebView2 browser process: ~215 MB + GPU ~68 MB (costo fijo del motor).
-- Renderer YouTube (página pesada): ~66 MB. UI propia: ~25 MB.
-- **Total Yang: ~435 MB vs Zen (Firefox): ~1143 MB.** ~38% del consumo.
-- Conclusión: el costo fijo lo pone WebView2 (~290 MB entre browser+GPU);
-  nuestro código (~4 MB) es irrelevante. Optimizar el binario más no mueve
-  la aguja. Único lever real futuro: menos procesos (tab discarding,
-  diferido) o flags experimentales tipo single-process (inestable, no default).
+## Baseline medido (Windows, Task Manager, con búsqueda DDG abierta)
+- Fila "Administrador de WebView2" (215 MB) = **total del grupo**, no un
+  proceso (los hijos suman lo mismo: GPU 68 + renderer DDG 66 + browser 43
+  + UI 25 + network/storage/crashpad ~12).
+- Binario Rust aparte: ~4 MB.
+- **Total Yang: ~220 MB vs Zen: 1143 MB (~19%).** Y sin YouTube abierto:
+  el renderer de 66 MB era solo resultados de DDG.
+- Conclusión: el costo lo pone WebView2 (~215 MB fijos); nuestro código
+  (~4 MB) es irrelevante. Único lever real futuro: menos procesos
+  (tab discarding, diferido).
